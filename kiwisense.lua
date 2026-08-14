@@ -9567,10 +9567,12 @@ local Library do
                     isOpen = true
                     updatePopupPos()
                     PopupFrame.Visible = true
+                    print("[SubMenu] Popup opened at:", PopupFrame.Position)
                 end
 
                 -- Используем Activated — срабатывает даже если родитель TextButton
                 DotsBtn.MouseButton1Down:Connect(function()
+                    print("[SubMenu] DotsBtn clicked, isOpen:", isOpen)
                     if isOpen then closePopup() else openPopup() end
                 end)
 
