@@ -2422,7 +2422,6 @@ function Fatality:CreateElements(Parent : Frame , ZIndex : number , Event : Bind
 		ValueFrame.BorderSizePixel = 0
 		ValueFrame.Position = UDim2.new(1, -4, 0.5, 0)
 		ValueFrame.Size = UDim2.new(0, 30, 0, 16)
-		ValueFrame.SizeConstraint = Enum.SizeConstraint.Absolute
 		ValueFrame.ZIndex = ZIndex + 2
 		ValueFrame.BackgroundTransparency = 1;
 
@@ -2438,7 +2437,6 @@ function Fatality:CreateElements(Parent : Frame , ZIndex : number , Event : Bind
 		ValueIcon.BorderSizePixel = 0
 		ValueIcon.Position = UDim2.new(0, 2, 0.5, 0)
 		ValueIcon.Size = UDim2.new(0, 12, 0, 12)
-		ValueIcon.SizeConstraint = Enum.SizeConstraint.Absolute
 		ValueIcon.ZIndex = ZIndex + 2
 		ValueIcon.Image = ""
 		ValueIcon.ImageTransparency = 1;
