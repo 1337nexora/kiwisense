@@ -9354,178 +9354,180 @@ local Library do
                 return NewKeybind
             end
 
-            -- ======= SubMenu: кнопка "⋯" открывает попап с доп. настройками =======
+            -- ======= SubMenu: кнопка "•••" открывает попап с доп. настройками =======
             function Toggle:SubMenu(Items)
                 Items = Items or {}
 
-                -- Кнопка "⋯" в SubElements
-                local DotsBtnWrapper = Instances:Create("TextButton", {
-                    Parent = ToggleItems["SubElements"].Instance,
-                    Name = "\0",
-                    Text = "•••",
-                    FontFace = Library.Font,
-                    TextColor3 = FromRGB(196, 231, 255),
-                    TextSize = 10,
-                    AutoButtonColor = false,
-                    BackgroundColor3 = FromRGB(34, 39, 45),
-                    BorderSizePixel = 0,
-                    Size = UDim2New(0, 20, 0, 20),
-                    ZIndex = 3,
-                    LayoutOrder = 99,
-                })
-                DotsBtnWrapper:AddToTheme({BackgroundColor3 = "Element", TextColor3 = "Accent"})
+                -- Кнопка "•••" — вставляем прямо в Toggle.Instance (не в SubElements)
+                -- Позиция: левее Indicator (который на Position 1,0, 0.5,0 с размером 20x20)
+                -- Indicator стоит на правом краю, SubElements левее него (-24px)
+                -- Ставим кнопку ещё левее SubElements
+                local DotsBtn = Instance.new("TextButton")
+                DotsBtn.Name   = "SubMenuDots"
+                DotsBtn.Text   = "•••"
+                DotsBtn.Font   = Enum.Font.GothamBold
+                DotsBtn.TextSize = 9
+                DotsBtn.TextColor3 = Library.Theme.Accent
+                DotsBtn.AutoButtonColor = false
+                DotsBtn.BackgroundColor3 = Library.Theme.Element
+                DotsBtn.BorderSizePixel  = 0
+                DotsBtn.AnchorPoint = Vector2.new(1, 0.5)
+                -- Indicator на (1, 0, 0.5, 0) размером 20px, SubElements на (1,-24,...)
+                -- Ставим кнопку на (1, -26, 0.5, 0) — левее Indicator
+                DotsBtn.Position = UDim2.new(1, -26, 0.5, 0)
+                DotsBtn.Size     = UDim2.new(0, 20, 0, 20)
+                DotsBtn.ZIndex   = 10
+                DotsBtn.Parent   = ToggleItems["Toggle"].Instance
 
-                Instances:Create("UICorner", {
-                    Parent = DotsBtnWrapper.Instance,
-                    Name = "\0",
-                    CornerRadius = UDimNew(0, 4),
-                })
-
-                local DotsBtn = DotsBtnWrapper.Instance
+                local dotCorner = Instance.new("UICorner")
+                dotCorner.CornerRadius = UDim.new(0, 4)
+                dotCorner.Parent = DotsBtn
 
                 DotsBtn.MouseEnter:Connect(function()
-                    DotsBtnWrapper:Tween(nil, {BackgroundColor3 = Library:GetLighterColor(Library.Theme.Element, 1.45)})
+                    DotsBtn.BackgroundColor3 = Library:GetLighterColor(Library.Theme.Element, 1.45)
                 end)
                 DotsBtn.MouseLeave:Connect(function()
-                    DotsBtnWrapper:Tween(nil, {BackgroundColor3 = Library.Theme.Element})
+                    DotsBtn.BackgroundColor3 = Library.Theme.Element
                 end)
 
-                -- Попап — в ScreenGui библиотеки поверх всего
-                local screenGui = Library.ScreenGui or game:GetService("CoreGui"):FindFirstChild("KiwisenseUI")
-                    or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-
+                -- Попап в CoreGui — гарантированно поверх всего
                 local PopupFrame = Instance.new("Frame")
-                PopupFrame.Name = "SubMenuPopup"
+                PopupFrame.Name = "SubMenuPopup_" .. tostring(math.random(1000,9999))
                 PopupFrame.BackgroundColor3 = FromRGB(22, 25, 29)
-                PopupFrame.BorderSizePixel = 0
-                PopupFrame.Size = UDim2.new(0, 180, 0, 10)
+                PopupFrame.BorderSizePixel  = 0
+                PopupFrame.Size = UDim2.new(0, 185, 0, 10)
                 PopupFrame.AutomaticSize = Enum.AutomaticSize.Y
                 PopupFrame.Visible = false
-                PopupFrame.ZIndex = 100
-                PopupFrame.Parent = game:GetService("CoreGui")
+                PopupFrame.ZIndex  = 500
+                PopupFrame.Parent  = game:GetService("CoreGui")
 
-                -- Стиль попапа
-                local popupCorner = Instance.new("UICorner")
-                popupCorner.CornerRadius = UDim.new(0, 6)
-                popupCorner.Parent = PopupFrame
+                local c1 = Instance.new("UICorner")
+                c1.CornerRadius = UDim.new(0, 6)
+                c1.Parent = PopupFrame
 
-                local popupStroke = Instance.new("UIStroke")
-                popupStroke.Color = FromRGB(32, 36, 42)
-                popupStroke.Transparency = 0.3
-                popupStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-                popupStroke.Parent = PopupFrame
+                local stroke = Instance.new("UIStroke")
+                stroke.Color = FromRGB(50, 55, 65)
+                stroke.Thickness = 1
+                stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+                stroke.Parent = PopupFrame
 
-                local popupPad = Instance.new("UIPadding")
-                popupPad.PaddingTop    = UDim.new(0, 8)
-                popupPad.PaddingBottom = UDim.new(0, 8)
-                popupPad.PaddingLeft   = UDim.new(0, 10)
-                popupPad.PaddingRight  = UDim.new(0, 10)
-                popupPad.Parent = PopupFrame
+                local pad = Instance.new("UIPadding")
+                pad.PaddingTop    = UDim.new(0, 8)
+                pad.PaddingBottom = UDim.new(0, 8)
+                pad.PaddingLeft   = UDim.new(0, 10)
+                pad.PaddingRight  = UDim.new(0, 10)
+                pad.Parent = PopupFrame
 
-                local listLayout = Instance.new("UIListLayout")
-                listLayout.Padding = UDim.new(0, 5)
-                listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-                listLayout.Parent = PopupFrame
+                local list = Instance.new("UIListLayout")
+                list.Padding = UDim.new(0, 5)
+                list.SortOrder = Enum.SortOrder.LayoutOrder
+                list.Parent = PopupFrame
 
-                -- Наполняем элементами
+                -- Заполняем элементами
                 local SubItems = {}
-                for _, itemData in ipairs(Items) do
-                    local t = itemData.Type or itemData.type or "Label"
+                for idx, itemData in ipairs(Items) do
+                    local t = (itemData.Type or itemData.type or "Label"):lower()
 
-                    if t == "Label" then
+                    if t == "label" then
                         local lbl = Instance.new("TextLabel")
+                        lbl.LayoutOrder = idx
                         lbl.BackgroundTransparency = 1
                         lbl.BorderSizePixel = 0
                         lbl.Size = UDim2.new(1, 0, 0, 14)
-                        lbl.FontFace = Library.Font
+                        lbl.Font = Enum.Font.Gotham
                         lbl.Text = itemData.Name or ""
-                        lbl.TextColor3 = FromRGB(120, 130, 145)
+                        lbl.TextColor3 = FromRGB(110, 120, 135)
                         lbl.TextSize = 11
                         lbl.TextXAlignment = Enum.TextXAlignment.Left
-                        lbl.ZIndex = 101
+                        lbl.ZIndex = 501
                         lbl.Parent = PopupFrame
 
-                    elseif t == "Toggle" then
+                    elseif t == "toggle" then
+                        local flagKey = itemData.Flag or itemData.flag or Library:NextFlag()
+                        Library.Flags[flagKey] = itemData.Default == true
+
                         local row = Instance.new("TextButton")
+                        row.LayoutOrder = idx
+                        row.BackgroundColor3 = FromRGB(30, 34, 40)
                         row.BackgroundTransparency = 1
                         row.BorderSizePixel = 0
-                        row.Size = UDim2.new(1, 0, 0, 22)
+                        row.Size = UDim2.new(1, 0, 0, 24)
                         row.Text = ""
                         row.AutoButtonColor = false
-                        row.ZIndex = 101
+                        row.ZIndex = 501
                         row.Parent = PopupFrame
 
-                        -- Название
+                        local rowCorner = Instance.new("UICorner")
+                        rowCorner.CornerRadius = UDim.new(0, 4)
+                        rowCorner.Parent = row
+
                         local rowLbl = Instance.new("TextLabel")
                         rowLbl.BackgroundTransparency = 1
                         rowLbl.BorderSizePixel = 0
-                        rowLbl.Size = UDim2.new(1, -26, 1, 0)
-                        rowLbl.Position = UDim2.new(0, 0, 0, 0)
-                        rowLbl.AnchorPoint = Vector2.new(0, 0)
-                        rowLbl.FontFace = Library.Font
+                        rowLbl.AnchorPoint = Vector2.new(0, 0.5)
+                        rowLbl.Position = UDim2.new(0, 2, 0.5, 0)
+                        rowLbl.Size = UDim2.new(1, -28, 0, 15)
+                        rowLbl.Font = Enum.Font.Gotham
                         rowLbl.Text = itemData.Name or "option"
-                        rowLbl.TextColor3 = FromRGB(200, 200, 200)
-                        rowLbl.TextSize = 13
+                        rowLbl.TextColor3 = FromRGB(190, 195, 205)
+                        rowLbl.TextSize = 12
                         rowLbl.TextXAlignment = Enum.TextXAlignment.Left
-                        rowLbl.ZIndex = 102
+                        rowLbl.ZIndex = 502
                         rowLbl.Parent = row
 
-                        -- Индикатор
                         local ind = Instance.new("Frame")
                         ind.AnchorPoint = Vector2.new(1, 0.5)
-                        ind.Position = UDim2.new(1, 0, 0.5, 0)
+                        ind.Position = UDim2.new(1, -2, 0.5, 0)
                         ind.Size = UDim2.new(0, 16, 0, 16)
                         ind.BorderSizePixel = 0
-                        ind.BackgroundColor3 = FromRGB(34, 39, 45)
-                        ind.ZIndex = 102
+                        ind.BackgroundColor3 = Library.Theme.Element
+                        ind.ZIndex = 502
                         ind.Parent = row
+                        Instance.new("UICorner", ind).CornerRadius = UDim.new(0, 3)
 
-                        local indCorner = Instance.new("UICorner")
-                        indCorner.CornerRadius = UDim.new(0, 3)
-                        indCorner.Parent = ind
+                        local chk = Instance.new("ImageLabel")
+                        chk.BackgroundTransparency = 1
+                        chk.BorderSizePixel = 0
+                        chk.Size = UDim2.new(1,-2,1,-2)
+                        chk.AnchorPoint = Vector2.new(0.5,0.5)
+                        chk.Position = UDim2.new(0.5,0,0.5,0)
+                        chk.Image = "rbxassetid://116339777575852"
+                        chk.ImageColor3 = Library.Theme.Accent
+                        chk.ImageTransparency = 1
+                        chk.ZIndex = 503
+                        chk.Parent = ind
 
-                        local checkImg = Instance.new("ImageLabel")
-                        checkImg.BackgroundTransparency = 1
-                        checkImg.BorderSizePixel = 0
-                        checkImg.Size = UDim2.new(1, -2, 1, -2)
-                        checkImg.AnchorPoint = Vector2.new(0.5, 0.5)
-                        checkImg.Position = UDim2.new(0.5, 0, 0.5, 0)
-                        checkImg.Image = "rbxassetid://116339777575852"
-                        checkImg.ImageColor3 = Library.Theme.Accent
-                        checkImg.ImageTransparency = 1
-                        checkImg.ZIndex = 103
-                        checkImg.Parent = ind
-
-                        local flagKey = itemData.Flag or itemData.flag or Library:NextFlag()
-                        local val = itemData.Default == true
-                        Library.Flags[flagKey] = val
-
-                        local function refresh()
+                        local function refreshRow()
                             if Library.Flags[flagKey] then
                                 ind.BackgroundColor3 = Library.Theme.Accent
-                                checkImg.ImageTransparency = 0
-                                rowLbl.TextColor3 = FromRGB(255, 255, 255)
+                                chk.ImageTransparency = 0
+                                rowLbl.TextColor3 = FromRGB(255,255,255)
+                                row.BackgroundTransparency = 0.85
                             else
                                 ind.BackgroundColor3 = Library.Theme.Element
-                                checkImg.ImageTransparency = 1
-                                rowLbl.TextColor3 = FromRGB(200, 200, 200)
+                                chk.ImageTransparency = 1
+                                rowLbl.TextColor3 = FromRGB(190,195,205)
+                                row.BackgroundTransparency = 1
                             end
                         end
-                        refresh()
+                        refreshRow()
 
                         row.MouseButton1Down:Connect(function()
                             Library.Flags[flagKey] = not Library.Flags[flagKey]
-                            refresh()
+                            refreshRow()
                             local cb = itemData.Callback or itemData.callback
                             if cb then Library:SafeCall(cb, Library.Flags[flagKey]) end
                         end)
-
                         row.MouseEnter:Connect(function()
-                            row.BackgroundTransparency = 0.85
-                            row.BackgroundColor3 = FromRGB(40, 45, 52)
+                            if not Library.Flags[flagKey] then
+                                row.BackgroundTransparency = 0.92
+                                row.BackgroundColor3 = FromRGB(38,43,50)
+                            end
                         end)
                         row.MouseLeave:Connect(function()
-                            row.BackgroundTransparency = 1
+                            if not Library.Flags[flagKey] then
+                                row.BackgroundTransparency = 1
+                            end
                         end)
 
                         SubItems[itemData.Name] = { Flag = flagKey }
@@ -9542,33 +9544,43 @@ local Library do
                     if renderConn then renderConn:Disconnect(); renderConn = nil end
                 end
 
+                local function updatePosition()
+                    local ap = DotsBtn.AbsolutePosition
+                    local as = DotsBtn.AbsoluteSize
+                    local ph = PopupFrame.AbsoluteSize.Y
+                    local sv = workspace.CurrentCamera.ViewportSize
+                    local x  = math.clamp(ap.X + as.X - 185, 4, sv.X - 189)
+                    local y  = (ap.Y + as.Y + ph + 6 > sv.Y)
+                                and (ap.Y - ph - 4)
+                                or  (ap.Y + as.Y + 4)
+                    PopupFrame.Position = UDim2.new(0, x, 0, y)
+                end
+
                 local function openPopup()
                     isOpen = true
+                    updatePosition()
                     PopupFrame.Visible = true
                     renderConn = game:GetService("RunService").RenderStepped:Connect(function()
-                        if not PopupFrame.Visible then return end
-                        local ap = DotsBtn.AbsolutePosition
-                        local as = DotsBtn.AbsoluteSize
-                        local ph = PopupFrame.AbsoluteSize.Y
-                        local sh = workspace.CurrentCamera.ViewportSize.Y
-                        local y = (ap.Y + as.Y + ph + 6 > sh) and (ap.Y - ph - 4) or (ap.Y + as.Y + 4)
-                        PopupFrame.Position = UDim2.new(0, ap.X + as.X - 180, 0, y)
+                        if PopupFrame.Visible then updatePosition() end
                     end)
                 end
 
-                DotsBtn.MouseButton1Down:Connect(function()
+                -- Используем Activated чтобы не конфликтовать с Toggle кнопкой
+                DotsBtn.Activated:Connect(function()
                     if isOpen then closePopup() else openPopup() end
                 end)
 
                 game:GetService("UserInputService").InputBegan:Connect(function(input)
                     if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
                     if not isOpen then return end
-                    local mp = game:GetService("UserInputService"):GetMouseLocation()
-                    local pp, ps = PopupFrame.AbsolutePosition, PopupFrame.AbsoluteSize
-                    local ap, as = DotsBtn.AbsolutePosition, DotsBtn.AbsoluteSize
-                    local inPopup = mp.X >= pp.X and mp.X <= pp.X + ps.X and mp.Y >= pp.Y and mp.Y <= pp.Y + ps.Y
-                    local inBtn   = mp.X >= ap.X and mp.X <= ap.X + as.X and mp.Y >= ap.Y and mp.Y <= ap.Y + as.Y
-                    if not inPopup and not inBtn then closePopup() end
+                    task.defer(function()  -- defer чтобы Activated сработал раньше
+                        local mp = game:GetService("UserInputService"):GetMouseLocation()
+                        local pp, ps = PopupFrame.AbsolutePosition, PopupFrame.AbsoluteSize
+                        local ap, as = DotsBtn.AbsolutePosition, DotsBtn.AbsoluteSize
+                        local inP = mp.X>=pp.X and mp.X<=pp.X+ps.X and mp.Y>=pp.Y and mp.Y<=pp.Y+ps.Y
+                        local inB = mp.X>=ap.X and mp.X<=ap.X+as.X and mp.Y>=ap.Y and mp.Y<=ap.Y+as.Y
+                        if not inP and not inB then closePopup() end
+                    end)
                 end)
 
                 return SubItems
