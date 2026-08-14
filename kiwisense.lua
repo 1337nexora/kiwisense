@@ -9354,6 +9354,264 @@ local Library do
                 return NewKeybind
             end
 
+            -- ======= SubMenu: кнопка "⋯" открывает попап с доп. настройками =======
+            function Toggle:SubMenu(Items)
+                Items = Items or {}
+
+                -- Кнопка "⋯" в SubElements (рядом с Keybind/Colorpicker)
+                local DotsBtn = Instances:Create("TextButton", {
+                    Parent = ToggleItems["SubElements"].Instance,
+                    Name = "\0",
+                    Text = "⋯",
+                    FontFace = Library.Font,
+                    TextColor3 = FromRGB(196, 231, 255),
+                    TextSize = 14,
+                    AutoButtonColor = false,
+                    BackgroundColor3 = FromRGB(34, 39, 45),
+                    BorderSizePixel = 0,
+                    Size = UDim2New(0, 20, 0, 20),
+                    ZIndex = 3,
+                    LayoutOrder = 99,
+                })  DotsBtn:AddToTheme({BackgroundColor3 = "Element", TextColor3 = "Accent"})
+
+                Instances:Create("UICorner", {
+                    Parent = DotsBtn.Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(0, 4),
+                })
+
+                DotsBtn:OnHover(function()
+                    DotsBtn:Tween(nil, {BackgroundColor3 = Library:GetLighterColor(Library.Theme.Element, 1.45)})
+                end)
+                DotsBtn:OnHoverLeave(function()
+                    DotsBtn:Tween(nil, {BackgroundColor3 = Library.Theme.Element})
+                end)
+
+                -- Попап фрейм — крепится к Library.Holder чтобы быть поверх всего
+                local Popup = Instances:Create("Frame", {
+                    Parent = Library.Holder.Instance,
+                    Name = "\0",
+                    Visible = false,
+                    BackgroundColor3 = FromRGB(22, 25, 29),
+                    BorderSizePixel = 0,
+                    Size = UDim2New(0, 180, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    ZIndex = 20,
+                })  Popup:AddToTheme({BackgroundColor3 = "Inline"})
+
+                Instances:Create("UICorner", {
+                    Parent = Popup.Instance,
+                    Name = "\0",
+                    CornerRadius = UDimNew(0, 6),
+                })
+
+                Instances:Create("UIStroke", {
+                    Parent = Popup.Instance,
+                    Name = "\0",
+                    Color = FromRGB(32, 36, 42),
+                    Transparency = 0.4,
+                    ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+                })  :AddToTheme({Color = "Border"})
+
+                Instances:Create("UIPadding", {
+                    Parent = Popup.Instance,
+                    Name = "\0",
+                    PaddingTop    = UDimNew(0, 6),
+                    PaddingBottom = UDimNew(0, 6),
+                    PaddingLeft   = UDimNew(0, 8),
+                    PaddingRight  = UDimNew(0, 8),
+                })
+
+                local PopupList = Instances:Create("Frame", {
+                    Parent = Popup.Instance,
+                    Name = "\0",
+                    BackgroundTransparency = 1,
+                    BorderSizePixel = 0,
+                    Size = UDim2New(1, 0, 0, 0),
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    ZIndex = 20,
+                })
+
+                Instances:Create("UIListLayout", {
+                    Parent = PopupList.Instance,
+                    Name = "\0",
+                    Padding = UDimNew(0, 4),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                })
+
+                -- Наполняем попап переданными элементами
+                -- Каждый элемент: { Type = "Toggle"/"Slider"/"Label", Name = ..., ... }
+                local SubItems = {}
+                for _, itemData in ipairs(Items) do
+                    local t = itemData.Type or itemData.type or "Label"
+
+                    if t == "Toggle" then
+                        -- Мини-тогл в попапе
+                        local row = Instances:Create("TextButton", {
+                            Parent = PopupList.Instance,
+                            Name = "\0",
+                            Text = "",
+                            AutoButtonColor = false,
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            Size = UDim2New(1, 0, 0, 20),
+                            ZIndex = 21,
+                        })
+
+                        local lbl = Instances:Create("TextLabel", {
+                            Parent = row.Instance,
+                            Name = "\0",
+                            FontFace = Library.Font,
+                            Text = itemData.Name or "option",
+                            TextColor3 = FromRGB(255, 255, 255),
+                            TextTransparency = 0.4,
+                            TextSize = 13,
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            AnchorPoint = Vector2New(0, 0.5),
+                            Position = UDim2New(0, 0, 0.5, 0),
+                            Size = UDim2New(1, -26, 0, 15),
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex = 21,
+                        })  lbl:AddToTheme({TextColor3 = "Text"})
+
+                        local ind = Instances:Create("Frame", {
+                            Parent = row.Instance,
+                            Name = "\0",
+                            AnchorPoint = Vector2New(1, 0.5),
+                            Position = UDim2New(1, 0, 0.5, 0),
+                            Size = UDim2New(0, 16, 0, 16),
+                            BorderSizePixel = 0,
+                            ZIndex = 21,
+                            BackgroundColor3 = FromRGB(34, 39, 45),
+                        })  ind:AddToTheme({BackgroundColor3 = "Element"})
+
+                        Instances:Create("UICorner", {
+                            Parent = ind.Instance,
+                            Name = "\0",
+                            CornerRadius = UDimNew(0, 3),
+                        })
+
+                        local check = Instances:Create("ImageLabel", {
+                            Parent = ind.Instance,
+                            Name = "\0",
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            Size = UDim2New(1, -2, 1, -2),
+                            AnchorPoint = Vector2New(0.5, 0.5),
+                            Position = UDim2New(0.5, 0, 0.5, 0),
+                            Image = "rbxassetid://116339777575852",
+                            ImageTransparency = 1,
+                            ZIndex = 22,
+                        })  check:AddToTheme({ImageColor3 = "Accent"})
+
+                        local flagKey = itemData.Flag or itemData.flag or Library:NextFlag()
+                        local val = itemData.Default or false
+                        Library.Flags[flagKey] = val
+
+                        local function refreshSubToggle()
+                            if Library.Flags[flagKey] then
+                                ind:ChangeItemTheme({BackgroundColor3 = "Accent"})
+                                ind:Tween(nil, {BackgroundColor3 = Library.Theme.Accent})
+                                check:Tween(nil, {ImageTransparency = 0})
+                                lbl:Tween(nil, {TextTransparency = 0})
+                            else
+                                ind:ChangeItemTheme({BackgroundColor3 = "Element"})
+                                ind:Tween(nil, {BackgroundColor3 = Library.Theme.Element})
+                                check:Tween(nil, {ImageTransparency = 1})
+                                lbl:Tween(nil, {TextTransparency = 0.4})
+                            end
+                        end
+                        refreshSubToggle()
+
+                        row:Connect("MouseButton1Down", function()
+                            Library.Flags[flagKey] = not Library.Flags[flagKey]
+                            refreshSubToggle()
+                            if itemData.Callback or itemData.callback then
+                                Library:SafeCall(itemData.Callback or itemData.callback, Library.Flags[flagKey])
+                            end
+                        end)
+
+                        SubItems[itemData.Name] = { Flag = flagKey, Row = row }
+
+                    elseif t == "Label" then
+                        local lbl = Instances:Create("TextLabel", {
+                            Parent = PopupList.Instance,
+                            Name = "\0",
+                            FontFace = Library.Font,
+                            Text = itemData.Name or "",
+                            TextColor3 = FromRGB(255, 255, 255),
+                            TextTransparency = 0.5,
+                            TextSize = 12,
+                            BackgroundTransparency = 1,
+                            BorderSizePixel = 0,
+                            Size = UDim2New(1, 0, 0, 16),
+                            TextXAlignment = Enum.TextXAlignment.Left,
+                            ZIndex = 21,
+                        })  lbl:AddToTheme({TextColor3 = "Text"})
+                    end
+                end
+
+                -- Позиционирование попапа при открытии
+                local isOpen = false
+                local renderConn
+
+                local function closePopup()
+                    isOpen = false
+                    Popup.Instance.Visible = false
+                    if renderConn then
+                        renderConn:Disconnect()
+                        renderConn = nil
+                    end
+                end
+
+                local function openPopup()
+                    isOpen = true
+                    Popup.Instance.Visible = true
+                    -- Обновляем позицию каждый кадр чтобы попап следовал за кнопкой
+                    renderConn = RunService.RenderStepped:Connect(function()
+                        if not Popup.Instance.Visible then return end
+                        local absPos  = DotsBtn.Instance.AbsolutePosition
+                        local absSize = DotsBtn.Instance.AbsoluteSize
+                        local popupH  = Popup.Instance.AbsoluteSize.Y
+                        local screenH = workspace.CurrentCamera.ViewportSize.Y
+                        -- Открываем вверх если не помещается снизу
+                        local yPos
+                        if absPos.Y + absSize.Y + popupH + 6 > screenH then
+                            yPos = absPos.Y - popupH - 4
+                        else
+                            yPos = absPos.Y + absSize.Y + 4
+                        end
+                        Popup.Instance.Position = UDim2New(0, absPos.X - 160 + absSize.X, 0, yPos)
+                    end)
+                end
+
+                DotsBtn:Connect("MouseButton1Down", function()
+                    if isOpen then closePopup() else openPopup() end
+                end)
+
+                -- Закрываем попап при клике вне него
+                Library:Connect(game:GetService("UserInputService").InputBegan, function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 and isOpen then
+                        local mp = game:GetService("UserInputService"):GetMouseLocation()
+                        local pp = Popup.Instance.AbsolutePosition
+                        local ps = Popup.Instance.AbsoluteSize
+                        local inBounds = mp.X >= pp.X and mp.X <= pp.X + ps.X
+                                      and mp.Y >= pp.Y and mp.Y <= pp.Y + ps.Y
+                        local onBtn = mp.X >= DotsBtn.Instance.AbsolutePosition.X
+                                   and mp.X <= DotsBtn.Instance.AbsolutePosition.X + DotsBtn.Instance.AbsoluteSize.X
+                                   and mp.Y >= DotsBtn.Instance.AbsolutePosition.Y
+                                   and mp.Y <= DotsBtn.Instance.AbsolutePosition.Y + DotsBtn.Instance.AbsoluteSize.Y
+                        if not inBounds and not onBtn then
+                            closePopup()
+                        end
+                    end
+                end)
+
+                return SubItems
+            end
+            -- ======= конец SubMenu =======
+
             return Toggle
         end
 
