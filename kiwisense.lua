@@ -9361,61 +9361,53 @@ local Library do
                 local UIS = game:GetService("UserInputService")
                 local RS  = game:GetService("RunService")
 
-                -- Найдём ScreenGui библиотеки (gethui или CoreGui)
-                local guiRoot
-                pcall(function() guiRoot = gethui() end)
-                if not guiRoot then
-                    pcall(function() guiRoot = game:GetService("CoreGui") end)
-                end
+                -- DotsBtn — напрямую в Toggle строку, левее Indicator (20px) с отступом 4px
+                -- Indicator стоит на AnchorPoint(1,0.5) Position(1,0,0.5,0)
+                -- Ставим DotsBtn на Position(1,-26,0.5,0) AnchorPoint(1,0.5)
+                local DotsBtnWrapper = Instances:Create("TextButton", {
+                    Parent     = ToggleItems["Toggle"].Instance,
+                    Name       = "\0",
+                    Text       = "···",
+                    FontFace   = Library.Font,
+                    TextSize   = 11,
+                    TextColor3 = Library.Theme.Accent,
+                    AutoButtonColor  = false,
+                    BackgroundColor3 = Library.Theme.Element,
+                    BorderSizePixel  = 0,
+                    AnchorPoint = Vector2New(1, 0.5),
+                    Position    = UDim2New(1, -26, 0.5, 0),
+                    Size        = UDim2New(0, 22, 0, 20),
+                    ZIndex      = 5,
+                })
+                DotsBtnWrapper:AddToTheme({BackgroundColor3 = "Element", TextColor3 = "Accent"})
+                Instances:Create("UICorner", {
+                    Parent = DotsBtnWrapper.Instance,
+                    Name   = "\0",
+                    CornerRadius = UDimNew(0, 4),
+                })
 
-                -- Кнопка "···" — Float поверх всего в ScreenGui
-                local DotsFrame = Instance.new("ScreenGui")
-                DotsFrame.Name = "SubMenuDotsGui"
-                DotsFrame.IgnoreGuiInset = true
-                DotsFrame.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                DotsFrame.Parent = guiRoot
+                local DotsBtn = DotsBtnWrapper.Instance
 
-                local DotsBtn = Instance.new("TextButton")
-                DotsBtn.Name             = "DotsBtn"
-                DotsBtn.Text             = "···"
-                DotsBtn.Font             = Enum.Font.GothamBold
-                DotsBtn.TextSize         = 11
-                DotsBtn.TextColor3       = Library.Theme.Accent
-                DotsBtn.AutoButtonColor  = false
-                DotsBtn.BackgroundColor3 = Library.Theme.Element
-                DotsBtn.BorderSizePixel  = 0
-                DotsBtn.Size             = UDim2.new(0, 22, 0, 20)
-                DotsBtn.ZIndex           = 10
-                DotsBtn.Position         = UDim2.new(0, -100, 0, -100) -- скрыт до первого sync
-                DotsBtn.Parent           = DotsFrame
-                Instance.new("UICorner", DotsBtn).CornerRadius = UDim.new(0, 4)
-
-                -- Синхронизируем позицию с Toggle строкой каждый кадр
-                local dotsSyncConn = RS.RenderStepped:Connect(function()
-                    local toggle = ToggleItems["Toggle"].Instance
-                    if not toggle or not toggle.Parent then return end
-                    local ap = toggle.AbsolutePosition
-                    local as = toggle.AbsoluteSize
-                    -- Правый край строки, по центру по Y
-                    DotsBtn.Position = UDim2.new(0, ap.X + as.X - 24, 0, ap.Y + (as.Y - 20) / 2)
+                -- Попап в PlayerGui (надёжнее чем CoreGui в некоторых исполнителях)
+                local popupParent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+                pcall(function()
+                    local cg = game:GetService("CoreGui")
+                    -- Проверяем можем ли писать в CoreGui
+                    local t = Instance.new("Frame")
+                    t.Parent = cg
+                    t:Destroy()
+                    popupParent = cg
                 end)
 
-                DotsBtn.MouseEnter:Connect(function()
-                    DotsBtn.BackgroundColor3 = Library:GetLighterColor(Library.Theme.Element, 1.45)
-                end)
-                DotsBtn.MouseLeave:Connect(function()
-                    DotsBtn.BackgroundColor3 = Library.Theme.Element
-                end)
-
-                -- Попап
                 local PopupGui = Instance.new("ScreenGui")
-                PopupGui.Name = "SubMenuPopupGui"
-                PopupGui.IgnoreGuiInset = true
-                PopupGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-                PopupGui.Parent = guiRoot
+                PopupGui.Name            = "SubMenuPopup"
+                PopupGui.IgnoreGuiInset  = true
+                PopupGui.ZIndexBehavior  = Enum.ZIndexBehavior.Sibling
+                PopupGui.ResetOnSpawn    = false
+                PopupGui.Parent          = popupParent
 
                 local PopupFrame = Instance.new("Frame")
-                PopupFrame.Name             = "Popup"
+                PopupFrame.Name             = "Frame"
                 PopupFrame.BackgroundColor3 = FromRGB(22, 25, 29)
                 PopupFrame.BorderSizePixel  = 0
                 PopupFrame.Size             = UDim2.new(0, 185, 0, 10)
@@ -9493,13 +9485,13 @@ local Library do
                         rowLbl.Parent          = row
 
                         local ind = Instance.new("Frame")
-                        ind.AnchorPoint    = Vector2.new(1, 0.5)
-                        ind.Position       = UDim2.new(1, 0, 0.5, 0)
-                        ind.Size           = UDim2.new(0, 16, 0, 16)
+                        ind.AnchorPoint     = Vector2.new(1, 0.5)
+                        ind.Position        = UDim2.new(1, 0, 0.5, 0)
+                        ind.Size            = UDim2.new(0, 16, 0, 16)
                         ind.BorderSizePixel = 0
                         ind.BackgroundColor3 = Library.Theme.Element
-                        ind.ZIndex         = 12
-                        ind.Parent         = row
+                        ind.ZIndex          = 12
+                        ind.Parent          = row
                         Instance.new("UICorner", ind).CornerRadius = UDim.new(0, 3)
 
                         local chk = Instance.new("ImageLabel")
@@ -9518,12 +9510,12 @@ local Library do
                             if Library.Flags[flagKey] then
                                 ind.BackgroundColor3  = Library.Theme.Accent
                                 chk.ImageTransparency = 0
-                                rowLbl.TextColor3     = FromRGB(255, 255, 255)
+                                rowLbl.TextColor3     = FromRGB(255,255,255)
                                 row.BackgroundTransparency = 0.85
                             else
                                 ind.BackgroundColor3  = Library.Theme.Element
                                 chk.ImageTransparency = 1
-                                rowLbl.TextColor3     = FromRGB(190, 195, 205)
+                                rowLbl.TextColor3     = FromRGB(190,195,205)
                                 row.BackgroundTransparency = 1
                             end
                         end
@@ -9559,10 +9551,10 @@ local Library do
                     local as = DotsBtn.AbsoluteSize
                     local ph = PopupFrame.AbsoluteSize.Y
                     local sv = workspace.CurrentCamera.ViewportSize
-                    local x = math.clamp(ap.X + as.X - 185, 4, sv.X - 189)
-                    local y = (ap.Y + as.Y + ph + 6 > sv.Y)
-                              and (ap.Y - ph - 4)
-                              or  (ap.Y + as.Y + 4)
+                    local x  = math.clamp(ap.X + as.X - 185, 4, sv.X - 189)
+                    local y  = (ap.Y + as.Y + ph + 6 > sv.Y)
+                               and (ap.Y - ph - 4)
+                               or  (ap.Y + as.Y + 4)
                     PopupFrame.Position = UDim2.new(0, x, 0, y)
                 end
 
@@ -9577,6 +9569,7 @@ local Library do
                     PopupFrame.Visible = true
                 end
 
+                -- Используем Activated — срабатывает даже если родитель TextButton
                 DotsBtn.MouseButton1Down:Connect(function()
                     if isOpen then closePopup() else openPopup() end
                 end)
@@ -9596,10 +9589,8 @@ local Library do
                     end)
                 end)
 
-                -- Cleanup при уничтожении Toggle
+                -- Cleanup при уничтожении
                 ToggleItems["Toggle"].Instance.Destroying:Connect(function()
-                    dotsSyncConn:Disconnect()
-                    DotsFrame:Destroy()
                     PopupGui:Destroy()
                 end)
 
